@@ -62,7 +62,14 @@ lazy val ipAddressHttp4sApp = (crossProject(JSPlatform, JVMPlatform) in file("ip
   .settings(
     name := "ip-address-http4s-app",
     libraryDependencies ++= Seq(
+      "org.http4s" %%% "http4s-dsl" % http4sVersion,
+      "org.http4s" %%% "http4s-ember-server" % http4sVersion,
+      "org.http4s" %%% "http4s-ember-client" % http4sVersion,
+      "org.http4s" %%% "http4s-circe" % http4sVersion,
+      "io.circe" %%% "circe-generic" % circeVersion,
+      "io.circe" %%% "circe-parser" % circeVersion,
     ),
   )
 
+val circeVersion = "0.14.6"
 val http4sVersion = "1.0.0-M34"
