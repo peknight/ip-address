@@ -17,10 +17,7 @@ object IpAddressRoutes:
     given CanEqual[Method, Method] = CanEqual.derived
     HttpRoutes.of[F] {
       case req @ GET -> Root / "ip" =>
-        val forwardedAddr = req.headers.get[`X-Forwarded-For`].flatMap(_.values.find(_.isDefined).flatten)
-        val remoteAddr = req.remoteAddr
-        val ipv4Addr = forwardedAddr.flatMap(_.asIpv4).orElse(remoteAddr.flatMap(_.asIpv4))
-        val ipv6Addr = forwardedAddr.flatMap(_.asIpv6).orElse(remoteAddr.flatMap(_.asIpv6))
-        Ok(IpAddress(ipv4Addr.map(_.toString), ipv6Addr.map(_.toString)).asJson.dropNullValues)
+        val addr = req.headers.get[`X-Forwarded-For`].flatMap(_.values.find(_.isDefined).flatten).orElse(req.remoteAddr)
+        Ok(IpAddress(addr.map(_.toString)).asJson.dropNullValues)
     }
 end IpAddressRoutes
