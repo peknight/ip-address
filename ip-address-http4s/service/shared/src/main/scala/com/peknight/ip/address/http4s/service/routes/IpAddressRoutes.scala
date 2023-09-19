@@ -6,6 +6,7 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
+import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.{HttpRoutes, Method}
 
 object IpAddressRoutes:
@@ -15,9 +16,11 @@ object IpAddressRoutes:
     given CanEqual[Path, Path] = CanEqual.derived
     given CanEqual[Method, Method] = CanEqual.derived
     HttpRoutes.of[F] {
-      case req@GET -> Root / "ip" => Ok(IpAddress(
-        req.remoteAddr.flatMap(_.asIpv4).map(_.toString),
-        req.remoteAddr.flatMap(_.asIpv6).map(_.toString)
-      ).asJson.dropNullValues)
+      case req @ GET -> Root / "ip" =>
+        val forwardedAddr = req.headers.get[`X-Forwarded-For`].flatMap(_.values.find(_.isDefined).flatten)
+        val remoteAddr = req.remoteAddr
+        val ipv4Addr = forwardedAddr.flatMap(_.asIpv4).orElse(remoteAddr.flatMap(_.asIpv4))
+        val ipv6Addr = forwardedAddr.flatMap(_.asIpv6).orElse(remoteAddr.flatMap(_.asIpv6))
+        Ok(IpAddress(ipv4Addr.map(_.toString), ipv6Addr.map(_.toString)).asJson.dropNullValues)
     }
 end IpAddressRoutes
